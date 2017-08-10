@@ -26,7 +26,5 @@ exports.init = function (params) {
       return db;
     }).then(initCollections);
   }
-  return new Promise((resove, reject) => {
-    resove(initCollections(params.db));
-  });
+  return initCollections(params.db);
 };
