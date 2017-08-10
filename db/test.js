@@ -1,6 +1,8 @@
 const Collection = require('mongodbext').Collection;
 
 exports.create = function (db) {
+  console.log('11111111111111111111111111111')
+  console.log(db)
   exports.collection = new Collection(db, 'test', {
     changeDataMethods: [
       'insertOne',
