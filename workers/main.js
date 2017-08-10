@@ -40,15 +40,13 @@ const start = function (params) {
       app.listen(port, hostname);
     }
   }).catch((err) => {
-    logger.warn(err);
+    logger.error(err.stack || err);
+    process.exit(1);
   });
 };
 
 module.exports = start;
 
 if (require.main === module) {
-  start({ listen: true }).catch((err) => {
-    logger.error(err.stack || err);
-    process.exit(1);
-  });
+  start({ listen: true });
 }
