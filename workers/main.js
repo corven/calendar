@@ -3,6 +3,7 @@ const createLogger = require('log4js');
 const config = require('../config/base');
 const routes = require('../routes');
 const requestLogger = require('../middleware/requestLogger');
+const db = require('../db');
 
 const logger = createLogger.getLogger('');
 
@@ -25,7 +26,9 @@ const createApp = function () {
 };
 
 const start = function (params) {
-  return new Promise((() => {
+  return db.init({ config: config.mongodb }).then(() => {
+    logger.info('Connection to mongodb has been established');
+
     const app = createApp();
 
     if (params.listen) {
@@ -36,16 +39,14 @@ const start = function (params) {
 
       app.listen(port, hostname);
     }
-  }));
+  }).catch((err) => {
+    logger.warn(err);
+  });
 };
 
 module.exports = start;
 
 if (require.main === module) {
-  process.on('uncaughtException', (err) => {
-    logger.error('Uncaught exception occured:', err.stack || err);
-  });
-
   start({ listen: true }).catch((err) => {
     logger.error(err.stack || err);
     process.exit(1);

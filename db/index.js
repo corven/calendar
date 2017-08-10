@@ -1,12 +1,13 @@
 const Client = require('mongodb').MongoClient;
 const _ = require('underscore');
 
-let collections = [];
+const collections = [];
 
 exports.nestingFields = {};
 exports.collections = {};
 
 exports.init = function (params, callback) {
+  // переделать на промисы
   Steppy(
     function () {
       if (params.config) {
@@ -22,17 +23,17 @@ exports.init = function (params, callback) {
 
       // create all collections
       _(collections).each((collectionName) => {
-				var module = require('./' + collectionName);
-				exports[collectionName] = exports.collections[collectionName] =
-					module.create(db);
-				exports.nestingFields[collectionName] = module.nestingFields || {_id: 1};
-			});
+        const module = require(`./${collectionName}`);
+        exports[collectionName] = exports.collections[collectionName] =
+     module.create(db);
+        exports.nestingFields[collectionName] = module.nestingFields || { _id: 1 };
+      });
 
       // and init those, which need to be initiated
       _(collections).each((collectionName) => {
-				var collection = require('./' + collectionName);
-				if (collection.init) collection.init();
-			});
+        const collection = require(`./${collectionName}`);
+        if (collection.init) collection.init();
+      });
     },
     function (err, db) {
       this.pass(db);
@@ -42,12 +43,12 @@ exports.init = function (params, callback) {
 };
 
 exports.getValidators = function () {
-  let validators = {};
+  const validators = {};
 
   _(collections).each((collectionName) => {
-		var module = require('./' + collectionName);
-		validators[collectionName] = module.validator;
-	});
+    const module = require(`./${collectionName}`);
+    validators[collectionName] = module.validator;
+  });
 
   return validators;
 };
