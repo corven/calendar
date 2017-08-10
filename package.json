@@ -16,6 +16,7 @@
     "jade": "^1.11.0",
     "log4js": "1.1.1",
     "mongodb": "^2.2.31",
+    "mongodbext": "^2.1.3",
     "morgan": "^1.8.2",
     "supervisor": "^0.12.0",
     "twostep": "^0.4.2",
