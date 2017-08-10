@@ -24,24 +24,17 @@
 
 // const db1 = await db.init({ config: config.mongodb });
 
-const mongoose = require('mongoose');
-
-const Schema = mongoose.Schema;
-
-const blogSchema = new Schema({
-  title: String
-});
-const Test = mongoose.model('testCase', blogSchema);
-
-mongoose.connect('mongodb://127.0.0.1:27017/calendar');
-const db = mongoose.connection;
+const Client = require('mongodb').MongoClient;
 
 async function qwe() {
-  const test = new Test({title: 'qwe'});
-  const qweqwe = await test.save();
-  const test1 = await Test.findOne();
-  console.log(test1);
-  return test1;
+  // const test = new Test({title: 'qwe'});
+  // const qweqwe = await test.save();
+  // const test1 = await Test.findOne();
+
+  const db2 = await Client.connect('mongodb://127.0.0.1:27017/calendar');
+  const tests = await db2.collection('tests').findOne();
+  console.log(tests);
+  return tests;
 }
 
-qwe().then(res => console.log(res));
+qwe()

@@ -3,21 +3,21 @@ const _ = require('underscore');
 
 const collections = ['test'];
 
-exports.embedders = {};
 exports.collections = {};
 
-const initCollections = function (db) {
-  _(collections).each((collectionName) => {
+const initCollections = async function (db) {
+  _(collections).each(async (collectionName) => {
     const module = require(`./${collectionName}`);
 
-    const collection = module.create(db);
-    exports[collectionName] = exports.collections[collectionName] = collection;
+    const collection = await module.create(db);
+    exports[collectionName] = collection;
+    exports.collections[collectionName] = collection;
   });
 
   return db;
 };
 
-var db;
+let db;
 
 exports.init = function (params) {
   if (params.config) {
@@ -26,5 +26,8 @@ exports.init = function (params) {
       return db;
     }).then(initCollections);
   }
-  return initCollections(params.db);
+
+  return new Promise((resove, reject) => {
+    resove(initCollections(params.db));
+  });
 };
