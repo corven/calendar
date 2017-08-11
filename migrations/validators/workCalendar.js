@@ -1,7 +1,10 @@
 module.exports = {
   $and: [{
-    startDate: ISODate,
-	  endDate: ISODate,
-	  status:
+    startDate: { $type: 'date' },
+    endDate: { $type: 'date' },
+    status: {
+      $type: 'string',
+      $in: ['status1', 'status2'],
+    },
   }],
 };

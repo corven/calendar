@@ -6,7 +6,7 @@ const router = express.Router({ mergeParams: true });
 exports.router = router;
 
 const routes = [
-
+  'employers'
 ];
 
 _(routes).each((name) => {
