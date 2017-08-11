@@ -1,39 +1,14 @@
-const createLogger = require('log4js');
-const cluster = require('cluster');
+const Steppy = require('twostep').Steppy;
 const _ = require('underscore');
+const cluster = require('cluster');
+const createLogger = require('log4js');
+const config = require('./config');
 
-const logger = createLogger.getLogger('');
-
+const logger = createLogger.getLogger('master');
+logger.level = config.logger.level;
 const workersHash = {};
 
-const forkWorker = function (params) {
-  cluster.setupMaster({ exec: `workers/${params.type}.js` });
-  const worker = cluster.fork(params);
-
-  workersHash[worker.id] = params;
-};
-
-const bindClusterListeners = () => {
-  cluster.on('listening', (worker) => {
-    const workerParams = workersHash[worker.id];
-
-    logger.info('worker #%s: %s is listening',
-      worker.id, workerParams.type);
-  });
-
-  cluster.on('exit', (worker) => {
-    const workerParams = workersHash[worker.id];
-
-    delete workersHash[worker.id];
-
-    logger.warn('#%s %s worker died, restore',
-      worker.id, workerParams.type);
-
-    forkWorker(workerParams);
-  });
-};
-
-const bindExitListeners = () => {
+const bindExitListeners = function () {
   const exitSignals = {
     SIGINT: 2,
     SIGTERM: 15,
@@ -46,10 +21,48 @@ const bindExitListeners = () => {
   });
 };
 
-bindClusterListeners();
+const forkWorker = function (params, callback) {
+  callback = callback || _.noop;
+  cluster.setupMaster({ exec: `workers/${params.type}.js` });
+  const worker = cluster.fork(params);
+  workersHash[worker.id] = params;
+  worker.on('listening', () => {
+    callback();
+  });
+  worker.on('error', callback);
+};
 
-bindExitListeners();
+const bindClusterListeners = function () {
+  cluster.on('listening', (worker) => {
+    const workerParams = workersHash[worker.id];
+    logger.info('worker #%s: %s is listening', worker.id, workerParams.type);
+  });
 
-require('os').cpus().forEach(() => {
-  forkWorker({ type: 'main' });
-});
+  cluster.on('exit', (worker) => {
+    const workerParams = workersHash[worker.id];
+    delete workersHash[worker.id];
+
+    logger.warn('#%s %s worker died, restore', worker.id, workerParams.type);
+    forkWorker(workerParams);
+  });
+};
+
+
+Steppy(
+  function () {
+    bindClusterListeners();
+
+    bindExitListeners();
+
+    const group = this.makeGroup();
+    require('os').cpus().forEach(() => {
+      forkWorker({ type: 'api' }, group.slot());
+    });
+  },
+  (err) => {
+    if (err) {
+      logger.error(err.stack || err);
+      process.exit(1);
+    }
+  },
+);

@@ -1,33 +1,55 @@
 const Client = require('mongodb').MongoClient;
+const Steppy = require('twostep').Steppy;
 const _ = require('underscore');
 
-const collections = ['test'];
+const collections = [
+  'test',
+];
 
+exports.nestingFields = {};
 exports.collections = {};
 
-const initCollections = async function (db) {
-  _(collections).each(async (collectionName) => {
-    const module = require(`./${collectionName}`);
+exports.init = function (params, callback) {
+  Steppy(
+    function () {
+      if (params.config) {
+        Client.connect(params.config.url, {}, this.slot());
+      } else {
+        this.pass(params.db);
+      }
+    },
+    function (err, db) {
+      this.pass(db);
 
-    const collection = await module.create(db);
-    exports[collectionName] = collection;
-    exports.collections[collectionName] = collection;
-  });
+      exports.nativeDb = db;
 
-  return db;
+      // create all collections
+      _(collections).each((collectionName) => {
+        const module = require(`./${collectionName}`);
+        exports[collectionName] = module.create(db);
+        exports.collections[collectionName] = module.create(db);
+      });
+
+      // and init those, which need to be initiated
+      _(collections).each((collectionName) => {
+        const collection = require(`./${collectionName}`);
+        if (collection.init) collection.init();
+      });
+    },
+    function (err, db) {
+      this.pass(db);
+    },
+    callback,
+  );
 };
 
-let db;
+exports.getValidators = function () {
+  const validators = {};
 
-exports.init = function (params) {
-  if (params.config) {
-    return Client.connect(params.config.url, params.config.options).then((_db) => {
-      db = _db;
-      return db;
-    }).then(initCollections);
-  }
-
-  return new Promise((resove, reject) => {
-    resove(initCollections(params.db));
+  _(collections).each((collectionName) => {
+    const module = require(`./${collectionName}`);
+    validators[collectionName] = module.validator;
   });
+
+  return validators;
 };
