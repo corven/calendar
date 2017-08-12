@@ -3,14 +3,13 @@ const createLogger = require('log4js');
 const express = require('express');
 const cluster = require('cluster');
 const bodyParser = require('body-parser');
-
+const reqValidate = require('../middleware/reqValidate');
 const config = require('../config');
 const db = require('../db');
 const requestLogger = require('../middleware/requestLogger');
 
 const apiResource = require('../routes/api');
 
-// when current module forked cluster.worker will be set
 const loggerLabel = (
   `worker${
     cluster.worker ? ` #${cluster.worker.id}` : ''
@@ -35,16 +34,18 @@ const createApp = function (callback) {
       app.use(requestLogger());
       app.use(bodyParser.json());
       app.use(bodyParser.urlencoded({ extended: true }));
+      app.use(reqValidate());
     },
     function (err, app) {
-      app.use('/api', apiResource.router);
+      app.use(apiResource.router);
 
       app.use((req, res) => {
         res.status(404).send();
       });
 
       app.use((err, req, res, next) => {
-        res.status(500).send();
+        logger.error(err.message);
+        res.status(500).send(err.message);
       });
 
       this.pass(app);
@@ -61,7 +62,6 @@ const start = function (params, callback) {
       }, this.slot());
     },
     function () {
-
       logger.info('Connection to mongodb has been established');
 
       createApp(this.slot());

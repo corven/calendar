@@ -16,7 +16,7 @@ exports.init = function () {
   collection.addPlugin('detailedError');
 };
 
-exports.validator = {
+exports.validation = {
   _id: ajg.schema.integer.minimum(1),
   startDate: ajg.schema.date.required,
   endDate: ajg.schema.date.required,

@@ -2,18 +2,16 @@ const Client = require('mongodb').MongoClient;
 const Steppy = require('twostep').Steppy;
 const _ = require('underscore');
 
-const collections = [
-  'test',
-];
+const collections = ['employers'];
 
-exports.nestingFields = {};
+exports.embedders = {};
 exports.collections = {};
 
 exports.init = function (params, callback) {
   Steppy(
     function () {
       if (params.config) {
-        Client.connect(params.config.url, {}, this.slot());
+        Client.connect(params.config.url, params.config.options, this.slot());
       } else {
         this.pass(params.db);
       }
@@ -26,8 +24,10 @@ exports.init = function (params, callback) {
       // create all collections
       _(collections).each((collectionName) => {
         const module = require(`./${collectionName}`);
-        exports[collectionName] = module.create(db);
-        exports.collections[collectionName] = module.create(db);
+
+        const collection = module.create(db);
+        exports[collectionName] = collection;
+        exports.collections[collectionName] = collection;
       });
 
       // and init those, which need to be initiated
@@ -43,13 +43,13 @@ exports.init = function (params, callback) {
   );
 };
 
-exports.getValidators = function () {
-  const validators = {};
+exports.getValidations = function () {
+  const validations = {};
 
-  _(collections).each((collectionName) => {
+  _(collections).each(function (collectionName) {
     const module = require(`./${collectionName}`);
-    validators[collectionName] = module.validator;
+    validations[collectionName] = module.validation;
   });
 
-  return validators;
+  return validations;
 };

@@ -1,9 +1,12 @@
 const Collection = require('mongodbext').Collection;
-const ajg = require('ajg');
 
 exports.create = function (db) {
   exports.collection = new Collection(db, 'employers', {
-    changeDataMethods: [],
+    changeDataMethods: [
+      'insertOne',
+      'updateOne', 'findOneAndUpdate', 'updateMany',
+      'deleteOne',
+    ],
   });
 
   return exports.collection;
@@ -14,12 +17,26 @@ exports.init = function () {
 
   collection.addPlugin('sequenceId');
   collection.addPlugin('detailedError');
+  collection.addPlugin('createDate', { format: 'ISODate' });
+  collection.addPlugin('updateDate', { format: 'ISODate' });
 };
-
-exports.validator = {
-  _id: ajg.schema.integer.minimum(1),
-  fullName: ajg.schema.string.required,
-  email: ajg.schema.string.required,
-  phone: ajg.schema.string.required,
-  note: ajg.schema.string.required,
+exports.validation = {
+  type: 'object',
+  properties: {
+    _id: {
+      type: 'integer',
+      minimum: 1,
+    },
+    fullName: {
+      type: 'string',
+    },
+    phone: {
+      type: 'string',
+    },
+    note: {
+      type: 'string',
+    },
+  },
+  required: ['_id', 'fullName', 'phone', 'note'],
+  additionalProperties: false,
 };

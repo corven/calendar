@@ -4,7 +4,7 @@ module.exports = {
     endDate: { $type: 'date' },
     status: {
       $type: 'string',
-      $in: ['status1', 'status2'],
+      $in: ['work', 'remoteWork', 'sick', 'vacation'],
     },
   }],
 };

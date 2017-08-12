@@ -5,10 +5,10 @@ const router = express.Router({ mergeParams: true });
 
 exports.router = router;
 
-const routes = ['employers'];
+const routes = [
+  'get', 'create', 'patch', 'delete',
+];
 
 _(routes).each((name) => {
-  const resource = require(`./${name}`);
-  const path = resource.path || `/${name}`;
-  router.use(path, resource.router);
+  require(`./${name}`)(router);
 });

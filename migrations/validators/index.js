@@ -1,7 +1,8 @@
-const _ = require('underscore');
+const schemasHash = {};
 
-const validators = ['employers'];
-
-_(validators).each((validator) => {
-  exports[validator] = require(`./${validator}`);
+['employers'].forEach((fileName) => {
+  schemasHash[fileName] = require(`./${fileName}`);
 });
+
+
+module.exports = schemasHash;
