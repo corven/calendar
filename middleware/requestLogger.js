@@ -3,7 +3,7 @@ const morgan = require('morgan');
 const cluster = require('cluster');
 
 module.exports = () => morgan([
-  chalk.yellow('[:date]'),
+  chalk.green('[:date]'),
   chalk.green(`[worker #${cluster.worker.id}]`),
   chalk.yellow(':method'),
   ':url',

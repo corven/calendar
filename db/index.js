@@ -11,7 +11,7 @@ exports.init = function (params, callback) {
   Steppy(
     function () {
       if (params.config) {
-        Client.connect(params.config.url, params.config.options, this.slot());
+        Client.connect(params.config.url, {}, this.slot());
       } else {
         this.pass(params.db);
       }

@@ -7,8 +7,14 @@ exports.setDbValidation = function (db, validators, callback) {
       const group = this.makeGroup();
 
       _(validators).each((validator, collectionName) => {
+        const validatorInfo = {
+          validationLevel: 'strict',
+          validationAction: 'error',
+          validator,
+        };
+
         db.createCollection(
-          collectionName, { validator }, group.slot(),
+          collectionName, validatorInfo, group.slot(),
         );
       });
     },

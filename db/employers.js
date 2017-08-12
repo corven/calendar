@@ -33,6 +33,9 @@ exports.validation = {
     phone: {
       type: 'string',
     },
+    email: {
+      type: 'string',
+    },
     note: {
       type: 'string',
     },
